@@ -1,0 +1,29 @@
+{
+  "name": "office-tournaments",
+  "version": "1.0.0",
+  "description": "Track who's the best in the office.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Trireir/office-tournaments.git"
+  },
+  "keywords": [
+    "slack",
+    "bot",
+    "ELO",
+    "tournament"
+  ],
+  "author": "Adri Blanco",
+  "license": "GNU GPLv3",
+  "engines": {
+    "node": "5.1.1"
+  },
+  "dependencies": {
+    "axios": "^0.18.0",
+    "botkit": "0.2.2",
+    "dotenv": "^6.0.0"
+  }
+}

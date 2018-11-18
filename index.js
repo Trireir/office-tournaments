@@ -1,6 +1,6 @@
 const { about, addResult, classification } = require('./commands-controller');
+const haloStorage = require('./halo-storage');
 require('dotenv').config()
-
 var Botkit = require('botkit');
 
 if (!process.env.CLIENT_ID || !process.env.CLIENT_SECRET || !process.env.PORT) {
@@ -9,9 +9,8 @@ if (!process.env.CLIENT_ID || !process.env.CLIENT_SECRET || !process.env.PORT) {
 }
 
 var config = {}
-
 config = {
-    json_file_store: './db_slackbutton_slash_command/',
+    storage: haloStorage()
 };
 
 var controller = Botkit.slackbot(config).configureSlackApp(
@@ -23,9 +22,9 @@ var controller = Botkit.slackbot(config).configureSlackApp(
 );
 
 controller.setupWebserver(process.env.PORT, function (err, webserver) {
-    controller.createWebhookEndpoints(controller.webserver);
+    controller.createWebhookEndpoints(webserver);
 
-    controller.createOauthEndpoints(controller.webserver, function (err, req, res) {
+    controller.createOauthEndpoints(webserver, function (err, req, res) {
         if (err) {
             res.status(500).send('ERROR: ' + err);
         } else {

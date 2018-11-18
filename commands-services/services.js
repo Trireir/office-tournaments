@@ -137,9 +137,125 @@ function updateUser(id, username, points, channel) {
   });
 }
 
+// Functions to store botkit info of users, channels and teams
+function getStorage(module) {
+  return function(id, cb) {
+    AxiosHALO.post('generalcontent/instance/search', {
+      'pagination': {
+        'page': 1,
+        'limit': 1
+      },
+      'moduleIds': [
+        module
+      ],
+      'searchValues': {
+        'property': 'id',
+        'operation': 'in',
+        'value': [
+          id
+        ],
+        'type': 'string'
+      },
+      'metaSearch': {
+        'property': 'deletedAt',
+        'operation': '=',
+        'value': null,
+        'type': 'null'
+      }
+    }).then((response) => {
+      if(response.items[0]) {
+        cb(null, response.items[0].values.data);
+      } else {
+        cb('Not found');
+      }
+    });
+  }
+}
+
+function saveStorage(module) {
+  return function(data, cb) {
+    AxiosHALO.post('generalcontent/instance', {
+      name: data.id,
+      module: module,
+      values: {
+        id: data.id,
+        data: data,
+      }
+    }).then((res) => {
+      cb(null, 'Saved');
+    }).catch((err) => {
+      cb(err);
+    })
+  }
+}
+
+function deleteStorage(module) {
+  return function(data, cb) {
+    AxiosHALO.post('generalcontent/instance/search', {
+      'pagination': {
+        'page': 1,
+        'limit': 1
+      },
+      'moduleIds': [
+        module
+      ],
+      'searchValues': {
+        'property': 'id',
+        'operation': 'in',
+        'value': [
+          data.id
+        ],
+        'type': 'string'
+      },
+      'metaSearch': {
+        'property': 'deletedAt',
+        'operation': '=',
+        'value': null,
+        'type': 'null'
+      }
+    }).then((response) => {
+      if(response.items[0]) {
+        AxiosHALO.delete(`generalcontent/instance/${response.items[0].id}`)
+        .then(() => {
+          cb(null, 'Removed');
+        })
+      } else {
+        cb('Not found');
+      }
+    });
+  }
+}
+
+function allStorage(module) {
+  return function(cb) {
+    AxiosHALO.post('generalcontent/instance/search', {
+      'moduleIds': [
+        module
+      ],
+      'metaSearch': {
+        'property': 'deletedAt',
+        'operation': '=',
+        'value': null,
+        'type': 'null'
+      }
+    }).then((response) => {
+      if(response.items) {
+        const values = response.items.map(i => i.values.data);
+        cb(null, values);
+      } else {
+        cb('Not found');
+      }
+    });
+  }
+}
+
 module.exports = {
   getPlayer,
   getClasification,
   createUser,
-  updateUser
+  updateUser,
+  getStorage,
+  saveStorage,
+  deleteStorage,
+  allStorage,
 }

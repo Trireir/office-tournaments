@@ -50,7 +50,7 @@ async function getClasification(channel) {
       'limit': 200
     },
     'moduleIds': [
-      process.env.HALO_MODULE
+      process.env.HALO_MODULE_USERS
     ],
     'searchValues': {
       'property': 'channel',
@@ -84,7 +84,7 @@ async function getPlayer(username, channel) {
       'limit': 1
     },
     'moduleIds': [
-      process.env.HALO_MODULE
+      process.env.HALO_MODULE_USERS
     ],
     'searchValues': {
       'condition': 'and',
@@ -116,7 +116,7 @@ async function getPlayer(username, channel) {
 function createUser(username, points, channel) {
   return AxiosHALO.post('generalcontent/instance', {
     name: username,
-    module: process.env.HALO_MODULE,
+    module: process.env.HALO_MODULE_USERS,
     values: {
       name: username,
       points: points,
@@ -128,7 +128,7 @@ function createUser(username, points, channel) {
 function updateUser(id, username, points, channel) {
   return AxiosHALO.put(`generalcontent/instance/${id}`, {
     'name': username,
-    'module': process.env.HALO_MODULE,
+    'module': process.env.HALO_MODULE_USERS,
     'values': {
       'name': username,
       'points': points,

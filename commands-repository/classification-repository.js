@@ -8,10 +8,8 @@ function cleanPlayerInfo(player) {
 }
 
 async function getClassification(channel) {
-  return services.getClasification(channel)
-    .then((classification) => {
-      return classification.items.map(cleanPlayerInfo)
-    });
+  const classification = await services.getClasification(channel);
+  return classification.items.map(cleanPlayerInfo);
 }
 
 module.exports = {

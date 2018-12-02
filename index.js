@@ -1,7 +1,15 @@
 const { about, addResult, classification } = require('./commands-controller');
+const axios = require('axios');
 const haloStorage = require('./halo-storage');
 require('dotenv').config()
 var Botkit = require('botkit');
+
+function pinging() {
+    setInterval(function() {
+        axios.get('https://office-tournaments.herokuapp.com').catch(() => {});
+    }, 300000);
+}
+pinging();
 
 if (!process.env.CLIENT_ID || !process.env.CLIENT_SECRET || !process.env.PORT) {
     console.log('Error: Specify CLIENT_ID, CLIENT_SECRET and PORT in environment');

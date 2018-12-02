@@ -12,9 +12,9 @@ function generateSpace(name) {
   return spaces;
 }
 
-async function addResult(channel) {
+async function classification(team, channel) {
   try {
-    const classification = await getClassification(channel);
+    const classification = await getClassification(team, channel);
     let message = `\`\`\`======= Classification of ${channel} =======\n`;
     classification.forEach((player, position) => {
       message += `${position + 1}. ${player.name} ${generateSpace(player.name)} ${player.points} \n`;
@@ -26,4 +26,4 @@ async function addResult(channel) {
   }
 }
 
-module.exports = addResult;
+module.exports = classification;

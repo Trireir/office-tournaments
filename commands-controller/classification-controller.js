@@ -6,11 +6,11 @@ function validateInput(channel) {
   }
 }
 
-async function classification(channel) {
+async function classification(team, channel) {
   const validationError = validateInput(channel);
   if (validationError) return validationError;
 
-  const message = await ClassificationBusiness(channel);
+  const message = await ClassificationBusiness(team, channel);
   return message;
 }
 

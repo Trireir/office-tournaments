@@ -35,7 +35,7 @@ AxiosHALO.interceptors.response.use(
   },
 );
 
-async function getClasification(channel) {
+async function getClasification(team, channel) {
   return AxiosHALO.post('generalcontent/instance/search', {
     'searchSettings': {
       'enableSlowSearch': true
@@ -53,12 +53,22 @@ async function getClasification(channel) {
       process.env.HALO_MODULE_USERS
     ],
     'searchValues': {
+      'condition': 'and',
+      'operands': [{
       'property': 'channel',
       'operation': 'in',
       'value': [
         channel
       ],
       'type': 'string'
+      }, {
+        'property': 'team',
+        'operation': 'in',
+        'value': [
+          team
+        ],
+        'type': 'string'
+      }]
     },
     'metaSearch': {
       'property': 'deletedAt',
@@ -69,7 +79,7 @@ async function getClasification(channel) {
   })
 };
 
-async function getPlayer(username, channel) {
+async function getPlayer(username, team, channel) {
   return AxiosHALO.post('generalcontent/instance/search', {
     'searchSettings': {
       'enableSlowSearch': true
@@ -96,6 +106,13 @@ async function getPlayer(username, channel) {
       ],
       'type': 'string'
       }, {
+        'property': 'team',
+        'operation': 'in',
+        'value': [
+          team
+        ],
+        'type': 'string'
+      }, {
         'property': 'name',
         'operation': 'in',
         'value': [
@@ -113,26 +130,29 @@ async function getPlayer(username, channel) {
   })
 };
 
-function createUser(username, points, channel) {
+function createUser(username, points, team, channel) {
   return AxiosHALO.post('generalcontent/instance', {
     name: username,
     module: process.env.HALO_MODULE_USERS,
     values: {
       name: username,
-      points: points,
-      channel: channel,
+      points,
+      channel,
+      team,
     }
   });
 }
 
-function updateUser(id, username, points, channel) {
+function updateUser(id, username, points, team, channel) {
   return AxiosHALO.put(`generalcontent/instance/${id}`, {
     'name': username,
     'module': process.env.HALO_MODULE_USERS,
     'values': {
-      'name': username,
-      'points': points,
-      'channel': channel,
+      name: username,
+      points: points,
+      channel: channel,
+      team: team,
+
     },
   });
 }
@@ -168,6 +188,8 @@ function getStorage(module) {
       } else {
         cb('Not found');
       }
+    }).catch((err) => {
+      cb('Error in storage: ', err.message);
     });
   }
 }
@@ -222,6 +244,8 @@ function deleteStorage(module) {
       } else {
         cb('Not found');
       }
+    }).catch((err) => {
+      cb('Error removing from storage: ', err.message);
     });
   }
 }

@@ -26,11 +26,11 @@ function validateInput(player1, player2, action, player3, player4) {
   }
 }
 
-async function addResult([player1, player2, action, player3, player4], channel) {
+async function addResult([player1, player2, action, player3, player4], team, channel) {
   const validationError = validateInput(player1, player2, action, player3, player4);
   if (validationError) return validationError;
 
-  const message = await AddResultBusiness(player1, player2, player3, player4, channel);
+  const message = await AddResultBusiness(player1, player2, player3, player4, team, channel);
   return message;
 }
 

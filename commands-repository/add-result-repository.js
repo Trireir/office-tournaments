@@ -14,18 +14,18 @@ function cleanPlayerInfo(player, username) {
   };
 }
 
-async function getPlayer(username, channel) {
-  const playerInfo = await services.getPlayer(username, channel);
+async function getPlayer(username, team, channel) {
+  const playerInfo = await services.getPlayer(username, team, channel);
   return cleanPlayerInfo(playerInfo.items[0], username);
 }
 
-async function createOrUpdateUser(id, username, points, channel) {
+async function createOrUpdateUser(id, username, points, team, channel) {
   try {
     let playerInfo;
     if (id) {
-      playerInfo = await services.updateUser(id, username, points, channel);
+      playerInfo = await services.updateUser(id, username, points, team, channel);
     } else {
-      playerInfo = await services.createUser(username, points, channel);
+      playerInfo = await services.createUser(username, points, team, channel);
     }
     return cleanPlayerInfo(playerInfo, username);
   } catch (err) {

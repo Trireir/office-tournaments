@@ -7,8 +7,8 @@ function cleanPlayerInfo(player) {
   };
 }
 
-async function getClassification(channel) {
-  const classification = await services.getClasification(channel);
+async function getClassification(team, channel) {
+  const classification = await services.getClasification(team, channel);
   return classification.items.map(cleanPlayerInfo);
 }
 

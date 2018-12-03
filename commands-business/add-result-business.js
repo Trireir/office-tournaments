@@ -16,31 +16,80 @@ function removeInitialAtSymbol(name) {
   return name.substring(1);
 }
 
-async function addResult(player1, player2, player3, player4, team, channel) {
+function stringifyTeam(team) {
+  if (team.length === 1) return removeInitialAtSymbol(team[0]);
+  let result = '';
+  team.forEach((player, index) => {
+    if(index === team.length - 1) {
+      result += `and ${removeInitialAtSymbol(player)}`;
+    } else {
+      result += `${removeInitialAtSymbol(player)} `;
+    }
+  });
+  return result;
+}
+
+function getTeamELO(team) {
+  return team.reduce((total, player) => {
+    return total + player.points;
+  }, 0)
+}
+
+function calculateSimetricELO(teamA, teamB) {
+  const eloTeamA = getTeamELO(teamA);
+  const eloTeamB = getTeamELO(teamB);
+  const expectedResultA = expectedResult(eloTeamA, eloTeamB);
+  const expectedResultB = 1 - expectedResultA;
+  const newEloA = updateElo(eloTeamA, expectedResultA, WIN);
+  const newEloB = updateElo(eloTeamB, expectedResultB, LOOSE);
+  const diffEloA = (newEloA - eloTeamA)/teamA.length;
+  const diffEloB = (newEloB - eloTeamB)/teamB.length;
+  return {
+    teamA: Math.floor(diffEloA),
+    teamB: Math.floor(diffEloB),
+  };
+}
+
+function calculateHandicapELO(teamA, teamB) {
+
+}
+
+function calculateELO(teamA, teamB) {
+  if(teamA.length === teamB.length) {
+    return calculateSimetricELO(teamA, teamB);
+  } else {
+    return calculateHandicapELO(teamA, teamB);
+  }
+}
+
+function getPlayerInfo(team, slackTeam, slackChannel) {
+  return team.map((player) => {
+    return getPlayer(removeInitialAtSymbol(player), slackTeam, slackChannel)
+  });
+}
+
+function updatePlayerInfo(team, diffElo, slackTeam, slackChannel) {
+  return team.map((player) => {
+    return createOrUpdateUser(player.id, player.name, player.points + diffElo, slackTeam, slackChannel);
+  });
+}
+
+async function addResult(teamA, teamB, slackTeam, slackChannel) {
   try {
     return Promise.all([
-      getPlayer(removeInitialAtSymbol(player1), team, channel),
-      getPlayer(removeInitialAtSymbol(player2), team, channel),
-      getPlayer(removeInitialAtSymbol(player3), team, channel),
-      getPlayer(removeInitialAtSymbol(player4), team, channel),
-    ]).then(([player1Info, player2Info, player3Info, player4Info]) => {
-      const eloTeamA = player1Info.points + player2Info.points;
-      const eloTeamB = player3Info.points + player4Info.points
-      const expectedResultA = expectedResult(eloTeamA, eloTeamB);
-      const expectedResultB = 1 - expectedResultA;
-      const newEloA = updateElo(eloTeamA, expectedResultA, WIN);
-      const newEloB = updateElo(eloTeamB, expectedResultB, LOOSE);
-      const diffEloA = newEloA - eloTeamA;
-      const diffEloB = newEloB - eloTeamB;
+      ...getPlayerInfo(teamA, slackTeam, slackChannel),
+      ...getPlayerInfo(teamB, slackTeam, slackChannel)
+    ]).then((info) => {
+      const teamAInfo = info.slice(0, teamA.length);
+      const teamBInfo = info.slice(teamA.length)
+      const newElo = calculateELO(teamAInfo, teamBInfo);
 
       return Promise.all([
-        createOrUpdateUser(player1Info.id, player1Info.name, player1Info.points + diffEloA, team, channel),
-        createOrUpdateUser(player2Info.id, player2Info.name, player2Info.points + diffEloA, team, channel),
-        createOrUpdateUser(player3Info.id, player3Info.name, player3Info.points + diffEloB, team, channel),
-        createOrUpdateUser(player4Info.id, player4Info.name, player4Info.points + diffEloB, team, channel),
+        ...updatePlayerInfo(teamAInfo, newElo.teamA, slackTeam, slackChannel),
+        ...updatePlayerInfo(teamBInfo, newElo.teamB, slackTeam, slackChannel),
       ]).then((result) => {
-        return player1Info.name + ' and ' + player2Info.name + ' won ' + diffEloA + ' points from ' + player3Info.name + ' and ' + player4Info.name;
-      });
+        return `${stringifyTeam(teamA)} won ${newElo.teamA} points from ${stringifyTeam(teamB)}`;
+      })
     }).catch((err) => { throw err; });
   } catch (err) {
     return 'Something weird happened...sorry. [' + err + ']';

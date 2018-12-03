@@ -1,36 +1,57 @@
 const AddResultBusiness = require('../commands-business/add-result-business');
 
-function validateInput(player1, player2, action, player3, player4) {
-  if(!player1 || !player2 || !action || !player3 || !player4) {
-    return 'Sorry, but I did not understand it propperly. It should be something like the following\n' +
-    '*/addResult @player1 @player2 won @player3 @player4*';
+const VALID_ACTIONS = ['won', 'win', 'wins'];
+
+function intersection(a, b) {
+  let index = -1;
+  a.forEach(function (e) {
+    if(b.indexOf(e) > -1) {
+      index = b.indexOf(e);
+    }
+  });
+  return index;
+}
+
+function checkPlayer(player) {
+  if(!player.startsWith('@')) {
+    return 'Are you sure that ' + player + ' is an user? Should start with a @';
+  }
+  return;
+}
+
+function transformInput(attributes) {
+  const actionIndex = intersection(VALID_ACTIONS, attributes);
+  if(actionIndex === -1) {
+    return {
+      error: 'Sorry, but I did not understand it propperly. It should be something like the following\n' +
+    '*/addResult @player1 @player2 won @player3 @player4*'
+    };
   }
 
-  if(!player1.startsWith('@')) {
-    return 'Are you sure that ' + player1 + ' is an user? Should start with a @';
-  }
-  if(!player2.startsWith('@')) {
-    return 'Are you sure that ' + player2 + ' is an user? Should start with a @';
-  }
-  if(!player3.startsWith('@')) {
-    return 'Are you sure that ' + player3 + ' is an user? Should start with a @';
-  }
-  if(!player4.startsWith('@')) {
-    return 'Are you sure that ' + player4 + ' is an user? Should start with a @';
+  if(actionIndex === 0 || actionIndex === attributes.length - 1) {
+    return {
+      error: 'Each team should have some members :sweat_smile:'
+    };
   }
 
-  const validActions = ['won', 'win', 'wins'];
-  if(!validActions.includes(action)) {
-    return 'Sorry, but I did not understand that action. It should be something like the following\n' +
-    '*/addResult @player1 @player2 won @player3 @player4*';
+  let playerValidation;
+  attributes.forEach((player, index) => {
+    if(index === actionIndex) return;
+    const playerError = checkPlayer(player);
+    if(playerError) playerValidation = playerError;
+  })
+  if(playerValidation) return { error: playerValidation };
+
+  return {
+    teamA: attributes.slice(0, actionIndex),
+    teamB: attributes.slice(actionIndex + 1),
   }
 }
 
-async function addResult([player1, player2, action, player3, player4], team, channel) {
-  const validationError = validateInput(player1, player2, action, player3, player4);
-  if (validationError) return validationError;
-
-  const message = await AddResultBusiness(player1, player2, player3, player4, team, channel);
+async function addResult(attributes, slackTeam, channel) {
+  const transformedAttributes = transformInput(attributes);
+  if (transformedAttributes.error) return transformedAttributes.error;
+  const message = await AddResultBusiness(transformedAttributes.teamA, transformedAttributes.teamB, slackTeam, channel);
   return message;
 }
 
